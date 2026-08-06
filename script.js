@@ -1,111 +1,18 @@
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwvFIGLhGilsaXBp1o2y9vbUrGg1Imy18fjOzD2_tM20VvlJqskjDxpJZ-fJ2YYyInErQ/exec";
-
-const userData = {
-    nome: '',
-    perfil: '',
-    genero: 'M',
-    tomPele: '#fadcac',
-    saldo: 0,
-    avatarIcon: '👦'
-};
-
-const DOM = {
-    screenStart: document.getElementById('screen-start'),
-    screenRegister: document.getElementById('screen-register'),
-    screenMain: document.getElementById('screen-main'),
-    tabCarteira: document.getElementById('tab-carteira'),
-    tabQrCode: document.getElementById('tab-qrcode'),
-    btnTabCarteira: document.getElementById('btn-tab-carteira'),
-    btnTabQrCode: document.getElementById('btn-tab-qrcode'),
-    usernameInput: document.getElementById('username'),
-    profileSelect: document.getElementById('profile'),
-    avatarDisplay: document.getElementById('avatar-display'),
-    optM: document.getElementById('opt-m'),
-    optF: document.getElementById('opt-f'),
-    skinOptions: document.querySelectorAll('.skin-option'),
-    walletAvatarDisplay: document.getElementById('wallet-avatar-display'),
-    walletName: document.getElementById('wallet-name'),
-    walletProfile: document.getElementById('wallet-profile'),
-    walletBalance: document.getElementById('wallet-balance'),
-    transactionLog: document.getElementById('transaction-log'),
-    feedbackMsg: document.getElementById('feedback-msg'),
-    btnSimulateUrl: document.getElementById('btn-simulate-url'),
-    btnGenerateWallet: document.getElementById('btn-generate-wallet'),
-    btnResetApp: document.getElementById('btn-reset-app'),
-    qrButtons: document.querySelectorAll('.btn-qr')
-};
-
-function init() {
-    if (DOM.btnSimulateUrl) DOM.btnSimulateUrl.addEventListener('click', simulateQrScan);
-    DOM.btnGenerateWallet.addEventListener('click', generateWallet);
-    DOM.btnResetApp.addEventListener('click', resetApp);
-    
-    DOM.optM.addEventListener('click', () => selectGender('M'));
-    DOM.optF.addEventListener('click', () => selectGender('F'));
-
-    DOM.skinOptions.forEach(opt => {
-        opt.addEventListener('click', (e) => selectSkin(e.target.getAttribute('data-color')));
-    });
-
-    DOM.btnTabCarteira.addEventListener('click', () => switchTab('carteira'));
-    DOM.btnTabQrCode.addEventListener('click', () => switchTab('qrcode'));
-
-    DOM.qrButtons.forEach(btn => {
-        btn.addEventListener('click', () => processTransaction(parseInt(btn.getAttribute('data-value'), 10)));
-    });
-
-    checkUrlParameters();
+// Função para gerar o ID automático (# + 6 dígitos)
+function generatePlayerId() {
+    const randomDigits = Math.floor(100000 + Math.random() * 900000);
+    return '#' + randomDigits;
 }
 
-function checkUrlParameters() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('modo') === 'cadastro') {
-        openRegistration();
-    }
+// Função para formatar a data/hora exata (DD/MM/AAAA 00:00 AM/PM)
+function getFormattedDateTime() {
+    const now = new Date();
+    const data = now.toLocaleDateString('pt-BR'); // Ex: 06/08/2026
+    const hora = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }); // Ex: 06:54 PM
+    return `${data} ${hora}`;
 }
 
-function simulateQrScan() {
-    window.history.pushState({}, '', '?modo=cadastro');
-    openRegistration();
-}
-
-function openRegistration() {
-    DOM.screenStart.classList.add('hidden');
-    DOM.screenRegister.classList.remove('hidden');
-}
-
-function selectGender(gender) {
-    userData.genero = gender;
-    DOM.optM.classList.toggle('selected', gender === 'M');
-    DOM.optF.classList.toggle('selected', gender === 'F');
-    updateAvatarDisplay();
-}
-
-function selectSkin(color) {
-    userData.tomPele = color;
-    DOM.skinOptions.forEach(opt => {
-        opt.classList.toggle('selected', opt.getAttribute('data-color') === color);
-    });
-    updateAvatarDisplay();
-}
-
-function updateAvatarDisplay() {
-    userData.avatarIcon = userData.genero === 'M' ? '👦' : '👧';
-    DOM.avatarDisplay.innerText = userData.avatarIcon;
-    DOM.avatarDisplay.style.backgroundColor = userData.tomPele;
-}
-
-function saveToGoogleSheets(data) {
-    if (GOOGLE_SHEETS_API_URL.includes("SUA_URL_DO_GOOGLE")) return;
-    
-    fetch(GOOGLE_SHEETS_API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    }).catch(err => console.error("Erro ao integrar Google Sheets:", err));
-}
-
+// Atualização do cadastro do jogador
 function generateWallet() {
     const nameInput = DOM.usernameInput.value.trim();
     if (!nameInput) {
@@ -114,17 +21,28 @@ function generateWallet() {
     }
 
     userData.nome = nameInput;
-    const selectedProfile = DOM.profileSelect.value;
+    
+    // Perfil selecionado
+    const selectedKey = DOM.profileSelect.value;
+    userData.perfil = PERFIS_JOGADOR[selectedKey].nome;
 
-    switch (selectedProfile) {
-        case 'casual': userData.perfil = 'Casual'; userData.saldo = 50; break;
-        case 'hardcore': userData.perfil = 'Hardcore'; userData.saldo = 100; break;
-        case 'estrategista': userData.perfil = 'Estrategista'; userData.saldo = 150; break;
-        case 'colecionador': userData.perfil = 'Colecionador'; userData.saldo = 200; break;
-        case 'random': userData.perfil = 'Aleatório'; userData.saldo = Math.floor(Math.random() * 200) + 10; break;
-    }
+    // 1. Gera o ID do Jogador (# + 6 números aleatórios)
+    userData.idJogador = generatePlayerId();
 
+    // 2. Registra o Dia / Hora da criação da carteira
+    userData.dataHora = getFormattedDateTime();
+
+    // 3. Sorteia o Saldo Total entre 50, 100 ou 150
+    const saldosPossiveis = [50, 100, 150];
+    userData.saldo = saldosPossiveis[Math.floor(Math.random() * saldosPossiveis.length)];
+
+    userData.historico = [];
+    saveLocalState();
+
+    // Salva no Google Sheets incluindo ID e Data/Hora
     saveToGoogleSheets({
+        idJogador: userData.idJogador,
+        dataHora: userData.dataHora,
         nome: userData.nome,
         genero: userData.genero,
         tomPele: userData.tomPele,
@@ -135,7 +53,9 @@ function generateWallet() {
     renderApp();
 }
 
+// Renderiza as informações na tela
 function renderApp() {
+    DOM.screenStart.classList.add('hidden');
     DOM.screenRegister.classList.add('hidden');
     DOM.screenMain.classList.remove('hidden');
 
@@ -143,55 +63,13 @@ function renderApp() {
     DOM.walletProfile.innerText = userData.perfil;
     DOM.walletBalance.innerText = `$ ${userData.saldo}`;
 
+    // Preenche ID e Data/Hora no cartão
+    document.getElementById('wallet-id').innerText = userData.idJogador || generatePlayerId();
+    document.getElementById('wallet-date').innerText = userData.dataHora || getFormattedDateTime();
+
     DOM.walletAvatarDisplay.innerText = userData.avatarIcon;
     DOM.walletAvatarDisplay.style.backgroundColor = userData.tomPele;
 
-    DOM.transactionLog.innerHTML = '<div style="color:#8c8266; text-align:center;">Nenhuma transação efetuada.</div>';
+    renderLog();
     switchTab('carteira');
 }
-
-function switchTab(tabName) {
-    if (tabName === 'carteira') {
-        DOM.tabCarteira.classList.remove('hidden');
-        DOM.tabQrCode.classList.add('hidden');
-        DOM.btnTabCarteira.classList.add('active');
-        DOM.btnTabQrCode.classList.remove('active');
-    } else {
-        DOM.tabCarteira.classList.add('hidden');
-        DOM.tabQrCode.classList.remove('hidden');
-        DOM.btnTabCarteira.classList.remove('active');
-        DOM.btnTabQrCode.classList.add('active');
-    }
-}
-
-function processTransaction(value) {
-    userData.saldo += value;
-    DOM.walletBalance.innerText = `$ ${userData.saldo}`;
-
-    if (DOM.transactionLog.innerText.includes('Nenhuma transação')) {
-        DOM.transactionLog.innerHTML = '';
-    }
-
-    const logItem = document.createElement('div');
-    logItem.className = 'log-item';
-    
-    const isPositive = value > 0;
-    const color = isPositive ? 'var(--green-positive)' : 'var(--red-negative)';
-    const type = isPositive ? 'Leitura QR (+)' : 'Leitura QR (-)';
-
-    logItem.innerHTML = `<span>${type}</span><strong style="color: ${color}">${isPositive ? '+' : ''}${value}</strong>`;
-    DOM.transactionLog.prepend(logItem);
-
-    DOM.feedbackMsg.style.color = color;
-    DOM.feedbackMsg.innerText = `QR Code Lido! ${isPositive ? '+' : ''}${value} aplicado.`;
-    setTimeout(() => { DOM.feedbackMsg.innerText = ''; }, 3000);
-}
-
-function resetApp() {
-    window.history.pushState({}, '', window.location.pathname);
-    DOM.screenMain.classList.add('hidden');
-    DOM.screenStart.classList.remove('hidden');
-    DOM.usernameInput.value = '';
-}
-
-document.addEventListener('DOMContentLoaded', init);

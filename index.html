@@ -1,161 +1,75 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carteira Digital - Hisui Style</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<!-- TELA PRINCIPAL (CARTEIRA ESTILO PASSE CASSINO) -->
+<div id="screen-main" class="hidden">
+    
+    <div id="feedback-msg"></div>
 
-<div class="container">
+    <!-- MOLDURA DA CREDENCIAL -->
+    <div class="casino-card-frame">
+        <div class="casino-card-inner">
+            <div class="watermark-bg">Cassino</div>
 
-    <!-- TELA 0: MENSAGEM DE BOAS-VINDAS -->
-    <div id="screen-start">
-        <div class="card-header-banner">
-            <span>❖ PASSE DE JOGADOR ❖</span>
-        </div>
-        
-        <p class="subtitle">Escanear o QR Code impresso no cartão de onboarding para cadastrar.</p>
-        
-        <div class="qr-start-box">
-            <div class="qr-icon-large">📱</div>
-            <p style="color: var(--navy-header); font-weight: bold;">Aguardando Leitura</p>
-            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                Ao ler o papel, a página abrirá com <br><code>?modo=cadastro</code> na URL.
-            </p>
-        </div>
-
-        <button class="btn" id="btn-simulate-url">[Testar] Simular Leitura de QR Code</button>
-    </div>
-
-    <!-- TELA 1: CADASTRO DO JOGADOR -->
-    <div id="screen-register" class="hidden">
-        <div class="card-header-banner">
-            <span>REGISTRO DE MEMBRO</span>
-        </div>
-
-        <div class="photo-frame-container">
-            <div class="avatar-preview" id="avatar-display" style="background-color: #fadcac;">
-                👦
+            <!-- COLUNA ESQUERDA: AVATAR, NOME E ESTRELAS -->
+            <div class="card-left">
+                <div class="avatar-photo-frame">
+                    <div id="wallet-avatar-display" class="avatar-photo">👦</div>
+                </div>
+                <div class="player-name-badge">
+                    <span id="wallet-name">NOME DO USUÁRIO</span>
+                </div>
+                <div class="card-stars">✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦</div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <label for="username">Nome do Jogador</label>
-            <input type="text" id="username" placeholder="Ex: Barkumo">
-        </div>
+            <!-- COLUNA DIREITA: DADOS DO JOGADOR -->
+            <div class="card-right">
+                <h2 id="wallet-profile" class="card-profile-title">PERFIL DO JOGADOR</h2>
 
-        <div class="form-group">
-            <label>Gênero</label>
-            <div class="radio-group">
-                <div class="radio-option selected" id="opt-m">M (Masculino)</div>
-                <div class="radio-option" id="opt-f">F (Feminino)</div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Tom de Pele</label>
-            <div class="radio-group">
-                <div class="radio-option skin-option selected" data-color="#fadcac" style="color:#8a6020;">Claro</div>
-                <div class="radio-option skin-option" data-color="#d0926b" style="color:#6e4021;">Médio</div>
-                <div class="radio-option skin-option" data-color="#683f23" style="color:#3d200d;">Escuro</div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label for="profile">Perfil de Jogador</label>
-            <select id="profile">
-                <option value="casual">Casual (Saldo Inicial: $50)</option>
-                <option value="hardcore">Hardcore (Saldo Inicial: $100)</option>
-                <option value="estrategista">Estrategista (Saldo Inicial: $150)</option>
-                <option value="colecionador">Colecionador (Saldo Inicial: $200)</option>
-                <option value="random">Aleatório (Random)</option>
-            </select>
-        </div>
-
-        <button class="btn" id="btn-generate-wallet">Emissão da Carteira</button>
-    </div>
-
-    <!-- TELA 2: APLICAÇÃO PRINCIPAL COM ABAS -->
-    <div id="screen-main" class="hidden">
-        
-        <div class="tabs-nav">
-            <button class="tab-btn active" id="btn-tab-carteira">🎴 Carteira</button>
-            <button class="tab-btn" id="btn-tab-qrcode">📷 Leitor QR</button>
-        </div>
-
-        <!-- ABA 1: CARTEIRA DIGITAL -->
-        <div id="tab-carteira">
-            <div class="card-details-grid">
-                <div>
-                    <div class="photo-frame-container">
-                        <div class="avatar-preview" id="wallet-avatar-display"></div>
-                    </div>
-                    <div class="rank-badge">Membro Oficial</div>
-                    <div class="stars-row">✦ ✦ ✦ ✦ ✦</div>
+                <div class="card-data-row">
+                    <span class="data-label">ID Jogador:</span>
+                    <strong id="wallet-id" class="data-value">#000000</strong>
                 </div>
 
-                <div class="info-list">
-                    <h2 id="wallet-name" style="text-align: left; margin-bottom: 8px;">Nome</h2>
-                    <div class="info-item">
-                        <span>Perfil:</span>
-                        <span id="wallet-profile">Casual</span>
-                    </div>
-                    <div class="info-item">
-                        <span>ID Jogador:</span>
-                        <span>#282445</span>
-                    </div>
-                    <div class="info-item" style="border:none; margin-top: 8px;">
-                        <span>Saldo Total:</span>
-                    </div>
-                    <div class="balance-display" id="wallet-balance">$ 0</div>
+                <div class="card-data-row">
+                    <span class="data-label">Dia/Hora:</span>
+                    <span id="wallet-date" class="data-value">00/00/0000 00:00 AM</span>
+                </div>
+
+                <div class="card-data-row highlight-balance">
+                    <span class="data-label">Saldo Total:</span>
+                    <strong id="wallet-balance" class="data-value-balance">$ 0</strong>
+                </div>
+
+                <!-- ÍCONES DECORATIVOS -->
+                <div class="card-stamps-row">
+                    <span class="stamp-icon">🎯</span>
+                    <span class="stamp-icon">🥁</span>
+                    <span class="stamp-icon">🦁</span>
+                    <span class="stamp-icon">☂️</span>
+                    <span class="stamp-icon">🦀</span>
                 </div>
             </div>
-
-            <div class="stamps-row">
-                <div class="stamp-icon">❖</div>
-                <div class="stamp-icon">⛩</div>
-                <div class="stamp-icon">✦</div>
-                <div class="stamp-icon">☯</div>
-            </div>
-
-            <h3>Fluxo de Caixa</h3>
-            <div class="log-list" id="transaction-log">
-                <div style="color:#8c8266; text-align:center;">Nenhuma transação efetuada.</div>
-            </div>
-
-            <button class="btn" id="btn-reset-app" style="background-color: #5f686d; margin-top: 14px;">B Voltar / Sair</button>
         </div>
-
-        <!-- ABA 2: LEITOR DE QR CODE -->
-        <div id="tab-qrcode" class="hidden">
-            <div class="qr-camera-mock">
-                <span style="font-size: 32px;">📷</span>
-                <p style="font-weight: bold; margin-top: 4px;">Simulador de Leitura QR</p>
-                <small>Selecione o valor para debitar/receber</small>
-            </div>
-
-            <label>Receber Valores (+ Crédito)</label>
-            <div class="qr-grid">
-                <button class="btn-qr btn-plus" data-value="5">+5</button>
-                <button class="btn-qr btn-plus" data-value="10">+10</button>
-                <button class="btn-qr btn-plus" data-value="15">+15</button>
-            </div>
-
-            <label>Debitar Valores (- Débito)</label>
-            <div class="qr-grid">
-                <button class="btn-qr btn-minus" data-value="-5">-5</button>
-                <button class="btn-qr btn-minus" data-value="-10">-10</button>
-                <button class="btn-qr btn-minus" data-value="-15">-15</button>
-            </div>
-
-            <div class="feedback-message" id="feedback-msg"></div>
-        </div>
-
     </div>
+
+    <!-- ABAS DA CARTEIRA -->
+    <div class="tab-buttons">
+        <button id="btn-tab-carteira" class="active">📜 Extrato</button>
+        <button id="btn-tab-qrcode">📱 Meu QR Code</button>
+    </div>
+
+    <!-- EXTRATO DE MOVIMENTAÇÕES -->
+    <div id="tab-carteira">
+        <h4 style="margin: 15px 0 10px; color:#334155;">Histórico de Movimentações</h4>
+        <div id="transaction-log" class="transaction-log"></div>
+    </div>
+
+    <!-- QR CODE DO JOGADOR -->
+    <div id="tab-qrcode" class="hidden" style="text-align: center; padding: 20px 0;">
+        <p style="color:#64748b; font-size:0.9rem;">Apresente este QR Code para receber recursos.</p>
+        <div id="qrcode-player-display" style="margin: 15px auto;"></div>
+    </div>
+
+    <!-- BOTÃO PARA RESETAR -->
+    <button id="btn-reset-app" class="btn-reset">
+        🚪 Encerrar Sessão / Trocar de Jogador
+    </button>
 </div>
-
-<script src="script.js"></script>
-</body>
-</html>
