@@ -1,4 +1,3 @@
-// DICIONÁRIO DOS NOVO PERFIS
 const PERFIS = {
     estrategista: {
         nome: "O ESTRATEGISTA",
@@ -23,8 +22,8 @@ const PERFIS = {
 };
 
 let userWallet = JSON.parse(localStorage.getItem('user_carteira_cassino')) || null;
+let html5QrCodeScanner = null;
 
-// ATUALIZA A PRÉVIA DO PERFIL NA TELA DE CADASTRO
 function updateProfilePreview() {
     const key = document.getElementById('profile').value;
     const p = PERFIS[key];
@@ -34,13 +33,11 @@ function updateProfilePreview() {
     }
 }
 
-// GERA ID DE 6 DÍGITOS (#000000)
 function generateRandomID() {
     const num = Math.floor(100000 + Math.random() * 900000);
     return '#' + num;
 }
 
-// FORMATA DATA E HORA (FORMATO EXATO DA IMAGEM)
 function getFormattedDate() {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -60,7 +57,6 @@ function getFormattedDate() {
     return `${dayName}, ${monthName} ${day}, ${year}, ${hours}:${minutes} ${ampm}`;
 }
 
-// CADASTRA O JOGADOR E EMITE A CARTEIRA
 function generateWallet() {
     const nameInput = document.getElementById('username').value.trim();
     if (!nameInput) {
@@ -71,7 +67,6 @@ function generateWallet() {
     const key = document.getElementById('profile').value;
     const perfilObj = PERFIS[key];
 
-    // SALDO SORTEADO ENTRE 50, 100, 150 OU 200
     const saldos = [50, 100, 150, 200];
     const saldoInicial = saldos[Math.floor(Math.random() * saldos.length)];
 
@@ -89,16 +84,28 @@ function generateWallet() {
     checkUrlParams();
 }
 
-// CONTROLE DE ABAS (EXTRATO OU QR CODE)
+// NAVEGAÇÃO DE ABAS
 function switchTab(tab) {
     document.getElementById('tab-extrato').classList.add('hidden');
+    document.getElementById('tab-scanner').classList.add('hidden');
     document.getElementById('tab-qrcode').classList.add('hidden');
+
     document.getElementById('tab-btn-extrato').classList.remove('active');
+    document.getElementById('tab-btn-scanner').classList.remove('active');
     document.getElementById('tab-btn-qrcode').classList.remove('active');
+
+    // Desliga a câmera se sair da aba do leitor
+    if (tab !== 'scanner') {
+        stopCameraScanner();
+    }
 
     if (tab === 'extrato') {
         document.getElementById('tab-extrato').classList.remove('hidden');
         document.getElementById('tab-btn-extrato').classList.add('active');
+    } else if (tab === 'scanner') {
+        document.getElementById('tab-scanner').classList.remove('hidden');
+        document.getElementById('tab-btn-scanner').classList.add('active');
+        startCameraScanner();
     } else {
         document.getElementById('tab-qrcode').classList.remove('hidden');
         document.getElementById('tab-btn-qrcode').classList.add('active');
@@ -106,7 +113,64 @@ function switchTab(tab) {
     }
 }
 
-// GERA O QR CODE DO JOGADOR
+// INICIA A CÂMERA DO LEITOR DE QR CODE
+function startCameraScanner() {
+    const feedback = document.getElementById('scanner-feedback');
+    feedback.innerText = "Iniciando câmera...";
+
+    if (!html5QrCodeScanner) {
+        html5QrCodeScanner = new Html5Qrcode("qr-reader");
+    }
+
+    const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+    html5QrCodeScanner.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanError
+    ).then(() => {
+        feedback.innerText = "Aponte para um QR Code de débito ou crédito.";
+    }).catch(err => {
+        console.error("Erro ao abrir câmera:", err);
+        feedback.innerText = "Erro ao acessar a câmera. Autorize a câmera no navegador.";
+    });
+}
+
+// DESLIGA A CÂMERA
+function stopCameraScanner() {
+    if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
+        html5QrCodeScanner.stop().catch(err => console.error(err));
+    }
+}
+
+// QUANDO O LEITOR LÊ UM QR CODE COM SUCESSO
+function onScanSuccess(decodedText) {
+    let valorEncontrado = null;
+
+    // Procura por valor=50 ou valor=-50 na URL do QR Code
+    if (decodedText.includes('valor=')) {
+        const match = decodedText.match(/valor=([-\d]+)/);
+        if (match) {
+            valorEncontrado = parseInt(match[1], 10);
+        }
+    } else if (!isNaN(decodedText)) {
+        valorEncontrado = parseInt(decodedText, 10);
+    }
+
+    if (valorEncontrado !== null && !isNaN(valorEncontrado)) {
+        stopCameraScanner();
+        processTransaction(valorEncontrado);
+        switchTab('extrato');
+    } else {
+        document.getElementById('scanner-feedback').innerText = "QR Code lido, mas não contém valor válido.";
+    }
+}
+
+function onScanError(errorMessage) {
+    // Ignora erros de frame vazio enquanto busca QR Code
+}
+
 function renderQRCode() {
     const container = document.getElementById('player-qrcode-container');
     container.innerHTML = '';
@@ -119,7 +183,6 @@ function renderQRCode() {
     }
 }
 
-// PROCESSA DÉBITO OU CRÉDITO LIDO VIA QR CODE
 function processTransaction(val) {
     if (!userWallet) return;
     
@@ -136,7 +199,6 @@ function processTransaction(val) {
     localStorage.setItem('user_carteira_cassino', JSON.stringify(userWallet));
     renderApp();
 
-    // TOAST NOTIFICAÇÃO
     const toast = document.getElementById('feedback-toast');
     toast.style.background = isPos ? '#16a34a' : '#dc2626';
     toast.innerText = `${isPos ? '➕ Crédito' : '➖ Débito'} de $${Math.abs(val)} efetuado!`;
@@ -146,7 +208,6 @@ function processTransaction(val) {
     setTimeout(() => { toast.classList.add('hidden'); }, 3000);
 }
 
-// VERIFICA SE O QR CODE SCANNER ENVIOU PARÂMETROS
 function checkUrlParams() {
     const params = new URLSearchParams(window.location.search);
     const valParam = params.get('valor');
@@ -155,7 +216,6 @@ function checkUrlParams() {
     }
 }
 
-// RENDERIZA A INTERFACE NA TELA
 function renderApp() {
     if (!userWallet) {
         document.getElementById('screen-register').classList.remove('hidden');
@@ -166,7 +226,6 @@ function renderApp() {
     document.getElementById('screen-register').classList.add('hidden');
     document.getElementById('screen-main').classList.remove('hidden');
 
-    // PREENCHE DADOS NA CREDENCIAL DA IMAGEM
     document.getElementById('wallet-name').innerText = userWallet.nome;
     document.getElementById('wallet-profile-title').innerText = userWallet.perfil;
     document.getElementById('wallet-id-display').innerText = userWallet.idJogador;
@@ -178,7 +237,6 @@ function renderApp() {
     renderLog();
 }
 
-// RENDERIZA LISTA DO EXTRATO
 function renderLog() {
     const list = document.getElementById('transaction-list');
     if (!userWallet.historico || userWallet.historico.length === 0) {
@@ -204,9 +262,9 @@ function renderLog() {
     });
 }
 
-// ENCERRAR SESSÃO / NOVO CADASTRO
 function resetWallet() {
     if (confirm('Deseja encerrar a sessão e criar um novo jogador neste aparelho?')) {
+        stopCameraScanner();
         localStorage.removeItem('user_carteira_cassino');
         userWallet = null;
         renderApp();

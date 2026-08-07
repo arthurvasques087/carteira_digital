@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carteira Digital - Pass de Jogador</title>
-    <!-- Força atualização do CSS evitando cache do celular -->
-    <link rel="stylesheet" href="style.css?v=3">
-    <!-- Biblioteca para gerar QR Code -->
+    <!-- CSS com parâmetro anti-cache -->
+    <link rel="stylesheet" href="style.css?v=4">
+    
+    <!-- Biblioteca 1: Gerador de QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Biblioteca 2: Leitor de QR Code via Câmera (HTML5 QR Code) -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -43,10 +46,10 @@
         </div>
 
 
-        <!-- TELA PRINCIPAL (CARTEIRA EXATA DA IMAGEM) -->
+        <!-- TELA PRINCIPAL (CARTEIRA EXATA DO MODELO) -->
         <div id="screen-main" class="app-card hidden">
             
-            <!-- NOTIFICAÇÃO FLUTUANTE DE DÉBITO/CRÉDITO -->
+            <!-- NOTIFICAÇÃO FLUTUANTE -->
             <div id="feedback-toast" class="toast hidden"></div>
 
             <!-- MOLDURA EXTERNA (MADEIRA ESCURA) -->
@@ -54,17 +57,18 @@
                 <!-- CARTÃO PERGAMINHO BEGE -->
                 <div class="carteira-parchment">
                     
-                    <!-- MARCAS D'ÁGUA DE FUNDO -->
-                    <div class="watermark-text">Kassino</div>
-                    <div class="watermark-face"></div>
+                    <!-- MARCA D'ÁGUA TEXTO CURSIVO "Kassino" (IGUAL AO MODELO) -->
+                    <div class="watermark-kassino-top">Kassino'</div>
+                    <div class="watermark-kassino-bottom">Kassino</div>
 
-                    <!-- DECORAÇÕES DOS CANTOS -->
+                    <!-- MARCA D'ÁGUA DESENHO DO PERSONAGEM (BACKGROUND SVG) -->
+                    <div class="watermark-character"></div>
+
+                    <!-- DECORAÇÕES DOS CANTOS E SÍMBOLOS -->
                     <span class="corner-icon top-left">🗼</span>
-                    <span class="corner-icon top-right">🥁</span>
                     <span class="corner-icon bottom-left">🦀</span>
                     <span class="corner-icon bottom-right">☂️</span>
 
-                    <!-- CABEÇALHO SUPERIOR DIREITO -->
                     <div class="card-top-meta">
                         <div>Date Begun: <span id="meta-date">01/28/2022</span></div>
                         <div>ID: <span id="meta-id">282445</span></div>
@@ -92,7 +96,7 @@
                                 </div>
                             </div>
 
-                            <!-- BANNER DO NOME (HEXAGONAL AZUL ESCURO) -->
+                            <!-- BANNER NOME -->
                             <div class="name-badge-banner">
                                 <span id="wallet-name">NOME DO USUÁRIO</span>
                             </div>
@@ -101,7 +105,7 @@
                             <div class="stars-row">✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦</div>
                         </div>
 
-                        <!-- LADO DIREITO: DADOS E SELOS DE RECOMPENSA -->
+                        <!-- LADO DIREITO: DADOS E SELOS -->
                         <div class="right-panel">
                             <h3 id="wallet-profile-title" class="profile-title">PERFIL DO JOGADOR</h3>
 
@@ -112,7 +116,7 @@
 
                             <div class="data-row">
                                 <span class="data-label">Dia/Hora:</span>
-                                <span id="wallet-date-display" class="data-val">Thursday, Aug 6, 2026, 6:54 PM</span>
+                                <span id="wallet-date-display" class="data-val">Friday, Aug 7, 2026, 8:09 AM</span>
                             </div>
 
                             <div class="data-row balance-row">
@@ -120,7 +124,7 @@
                                 <span id="wallet-balance-display" class="data-val-balance">"200"</span>
                             </div>
 
-                            <!-- BARRA DE SELOS VERMELHOS DA IMAGEM -->
+                            <!-- BARRA DE SELOS VERMELHOS -->
                             <div class="stamps-bar">
                                 <div class="stamp-circle">🎯</div>
                                 <div class="stamp-circle">🥁</div>
@@ -134,20 +138,31 @@
                 </div>
             </div>
 
-            <!-- NAVEGAÇÃO DE ABAS ABAIXO DO CARTÃO -->
+            <!-- MENU DE NAVEGAÇÃO (AGORA COM O LEITOR DE QR CODE) -->
             <div class="nav-tabs">
                 <button id="tab-btn-extrato" class="tab-btn active" onclick="switchTab('extrato')">📜 Extrato</button>
+                <button id="tab-btn-scanner" class="tab-btn highlight-scanner" onclick="switchTab('scanner')">📷 Escanear QR</button>
                 <button id="tab-btn-qrcode" class="tab-btn" onclick="switchTab('qrcode')">📱 Meu QR Code</button>
             </div>
 
-            <!-- CONTEÚDO DAS ABAS -->
+            <!-- ABA 1: EXTRATO -->
             <div id="tab-extrato" class="tab-content">
                 <h4 class="sub-title">Histórico de Movimentações</h4>
                 <div id="transaction-list" class="transaction-list"></div>
             </div>
 
+            <!-- ABA 2: LEITOR DE QR CODE (CÂMERA INTEGRADA) -->
+            <div id="tab-scanner" class="tab-content hidden">
+                <p class="qr-info">Aponte a câmera para o QR Code de débito ou crédito:</p>
+                <div id="qr-reader-box">
+                    <div id="qr-reader"></div>
+                </div>
+                <div id="scanner-feedback" class="scanner-feedback-msg">Aguardando câmera...</div>
+            </div>
+
+            <!-- ABA 3: QR CODE DO PRÓPRIO JOGADOR -->
             <div id="tab-qrcode" class="tab-content hidden">
-                <p class="qr-info">Apresente este QR Code para ler saldos ou recompensas:</p>
+                <p class="qr-info">Seu QR Code de identificação na mesa:</p>
                 <div id="player-qrcode-container" class="qr-box"></div>
             </div>
 
@@ -158,7 +173,7 @@
         </div>
     </div>
 
-    <!-- Força atualização do JS evitando cache -->
-    <script src="script.js?v=3"></script>
+    <!-- JS com parâmetro anti-cache -->
+    <script src="script.js?v=4"></script>
 </body>
 </html>

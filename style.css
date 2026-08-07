@@ -99,13 +99,13 @@ body {
     font-family: sans-serif;
 }
 
-/* --- MOLDURA DE MADEIRA DA CARTEIRA (EXATA DA IMAGEM) --- */
+/* --- MOLDURA DE MADEIRA DA CARTEIRA --- */
 .carteira-wood-frame {
-    background: #2b1b17;
-    border: 5px solid #1a0f0d;
-    border-radius: 8px;
+    background: #231612;
+    border: 5px solid #140b08;
+    border-radius: 10px;
     padding: 8px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8);
     margin-bottom: 16px;
 }
 
@@ -119,37 +119,52 @@ body {
     color: #1c1917;
 }
 
-/* MARCAS D'ÁGUA */
-.watermark-text {
+/* --- MARCAS D'ÁGUA (EXATAS DO DESENHO MODELO) --- */
+.watermark-kassino-top {
     position: absolute;
-    bottom: -10px;
-    right: 12%;
-    font-family: 'Brush Script MT', cursive, serif;
-    font-size: 4.2rem;
-    color: rgba(140, 110, 60, 0.16);
+    top: 15px;
+    left: 20%;
+    font-family: 'Brush Script MT', 'Bickham Script Pro', cursive, serif;
+    font-size: 4.8rem;
+    color: rgba(140, 105, 55, 0.16);
     pointer-events: none;
     user-select: none;
-    transform: rotate(-4deg);
+    transform: rotate(-12deg);
+    z-index: 1;
 }
 
-.watermark-face {
+.watermark-kassino-bottom {
     position: absolute;
-    top: 25%;
-    left: 45%;
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle, rgba(160, 120, 70, 0.12) 0%, transparent 70%);
+    bottom: -15px;
+    left: 30%;
+    font-family: 'Brush Script MT', 'Bickham Script Pro', cursive, serif;
+    font-size: 5rem;
+    color: rgba(140, 105, 55, 0.16);
     pointer-events: none;
+    user-select: none;
+    transform: rotate(-10deg);
+    z-index: 1;
 }
 
-/* ÍCONES DE CANTO */
+.watermark-character {
+    position: absolute;
+    top: 0%;
+    left: 22%;
+    width: 260px;
+    height: 180px;
+    background-image: radial-gradient(circle, rgba(160, 120, 70, 0.14) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ÍCONES DE CANTO E SÍMBOLOS */
 .corner-icon {
     position: absolute;
     font-size: 0.8rem;
-    opacity: 0.4;
+    opacity: 0.45;
+    z-index: 2;
 }
 .corner-icon.top-left { top: 4px; left: 6px; }
-.corner-icon.top-right { top: 4px; right: 6px; }
 .corner-icon.bottom-left { bottom: 4px; left: 6px; }
 .corner-icon.bottom-right { bottom: 4px; right: 6px; }
 
@@ -161,6 +176,7 @@ body {
     color: #78684f;
     text-align: right;
     font-family: 'Courier New', monospace;
+    z-index: 2;
 }
 
 .card-top-symbol {
@@ -169,6 +185,7 @@ body {
     right: 12px;
     font-size: 0.9rem;
     color: #c09e53;
+    z-index: 2;
 }
 
 .guide-line {
@@ -177,11 +194,12 @@ body {
     right: 10px;
     height: 1px;
     background: rgba(140, 120, 96, 0.25);
+    z-index: 1;
 }
 .line-top { top: 38px; }
 .line-bottom { bottom: 26px; }
 
-/* LAYOUT INTERNO DA CARTEIRA */
+/* LAYOUT INTERNO */
 .card-body {
     display: flex;
     gap: 12px;
@@ -190,7 +208,6 @@ body {
     margin-top: 10px;
 }
 
-/* PAINEL ESQUERDO: AVATAR + BANNER NOME + ESTRELAS */
 .left-panel {
     width: 120px;
     display: flex;
@@ -243,15 +260,14 @@ body {
     margin-top: 2px;
 }
 
-/* BANNER DE NOME DO JOGADOR (ESTILO IMAGEM) */
 .name-badge-banner {
-    background: #253342;
+    background: #1e2d3b;
     color: #ffffff;
     font-size: 0.68rem;
     font-weight: bold;
     font-family: sans-serif;
-    padding: 3px 10px;
-    border-radius: 10px;
+    padding: 4px 10px;
+    border-radius: 12px;
     margin-top: 8px;
     width: 100%;
     text-align: center;
@@ -263,13 +279,12 @@ body {
 }
 
 .stars-row {
-    color: #253342;
+    color: #1e2d3b;
     font-size: 0.62rem;
     margin-top: 4px;
     letter-spacing: 1px;
 }
 
-/* PAINEL DIREITO: DADOS DO JOGADOR */
 .right-panel {
     flex-grow: 1;
     display: flex;
@@ -318,7 +333,6 @@ body {
     font-size: 0.95rem;
 }
 
-/* BARRA DOS SELOS VERMELHOS */
 .stamps-bar {
     background: #e4d7be;
     border: 1px solid #bdae93;
@@ -345,30 +359,64 @@ body {
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-/* ABAS E HISTÓRICO */
+/* NAVEGAÇÃO POR ABAS */
 .nav-tabs {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 12px;
 }
 
 .tab-btn {
     flex: 1;
-    padding: 8px;
+    padding: 9px 4px;
     background: #0f172a;
     border: 1px solid #334155;
     color: #94a3b8;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: bold;
     cursor: pointer;
     font-family: sans-serif;
+    transition: all 0.2s;
 }
 
 .tab-btn.active {
     background: #2563eb;
     color: #ffffff;
     border-color: #3b82f6;
+}
+
+.tab-btn.highlight-scanner.active {
+    background: #059669;
+    border-color: #10b981;
+}
+
+/* LEITOR DE QR CODE */
+#qr-reader-box {
+    width: 100%;
+    max-width: 320px;
+    margin: 10px auto;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0f172a;
+}
+
+#qr-reader {
+    width: 100%;
+}
+
+#qr-reader video {
+    object-fit: cover !important;
+    border-radius: 8px;
+}
+
+.scanner-feedback-msg {
+    text-align: center;
+    font-size: 0.82rem;
+    color: #a7f3d0;
+    margin-top: 6px;
+    font-family: sans-serif;
 }
 
 .sub-title {
