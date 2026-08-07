@@ -1,75 +1,164 @@
-<!-- TELA PRINCIPAL (CARTEIRA ESTILO PASSE CASSINO) -->
-<div id="screen-main" class="hidden">
-    
-    <div id="feedback-msg"></div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carteira Digital - Pass de Jogador</title>
+    <!-- Força atualização do CSS evitando cache do celular -->
+    <link rel="stylesheet" href="style.css?v=3">
+    <!-- Biblioteca para gerar QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
 
-    <!-- MOLDURA DA CREDENCIAL -->
-    <div class="casino-card-frame">
-        <div class="casino-card-inner">
-            <div class="watermark-bg">Cassino</div>
-
-            <!-- COLUNA ESQUERDA: AVATAR, NOME E ESTRELAS -->
-            <div class="card-left">
-                <div class="avatar-photo-frame">
-                    <div id="wallet-avatar-display" class="avatar-photo">👦</div>
-                </div>
-                <div class="player-name-badge">
-                    <span id="wallet-name">NOME DO USUÁRIO</span>
-                </div>
-                <div class="card-stars">✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦</div>
+    <div class="main-wrapper">
+        
+        <!-- TELA DE CADASTRO DO JOGADOR -->
+        <div id="screen-register" class="app-card">
+            <h2 class="form-title">Cadastro do Jogador</h2>
+            
+            <div class="form-group">
+                <label for="username">Nome do Jogador:</label>
+                <input type="text" id="username" placeholder="Digite seu nome ou apelido" autocomplete="off">
             </div>
 
-            <!-- COLUNA DIREITA: DADOS DO JOGADOR -->
-            <div class="card-right">
-                <h2 id="wallet-profile" class="card-profile-title">PERFIL DO JOGADOR</h2>
+            <div class="form-group">
+                <label for="profile">Perfil de Jogador:</label>
+                <select id="profile" onchange="updateProfilePreview()">
+                    <option value="estrategista">1. O Estrategista</option>
+                    <option value="colecionador">2. O Colecionador</option>
+                    <option value="desafiador">3. O Desafiador</option>
+                    <option value="social">4. O Social</option>
+                </select>
 
-                <div class="card-data-row">
-                    <span class="data-label">ID Jogador:</span>
-                    <strong id="wallet-id" class="data-value">#000000</strong>
-                </div>
-
-                <div class="card-data-row">
-                    <span class="data-label">Dia/Hora:</span>
-                    <span id="wallet-date" class="data-value">00/00/0000 00:00 AM</span>
-                </div>
-
-                <div class="card-data-row highlight-balance">
-                    <span class="data-label">Saldo Total:</span>
-                    <strong id="wallet-balance" class="data-value-balance">$ 0</strong>
-                </div>
-
-                <!-- ÍCONES DECORATIVOS -->
-                <div class="card-stamps-row">
-                    <span class="stamp-icon">🎯</span>
-                    <span class="stamp-icon">🥁</span>
-                    <span class="stamp-icon">🦁</span>
-                    <span class="stamp-icon">☂️</span>
-                    <span class="stamp-icon">🦀</span>
+                <div id="profile-card-preview" class="profile-preview">
+                    <p id="profile-quote" class="quote">"Para mim, sorte é apenas matemática sem paciência."</p>
+                    <p id="profile-desc" class="desc">
+                        Focado em lógica, probabilidade e controle. Prefere jogos de mesa e desafios onde a tomada de decisão inteligente faz toda a diferença.
+                    </p>
                 </div>
             </div>
+
+            <button class="btn-submit" onclick="generateWallet()">Emissão da Carteira 🚀</button>
+        </div>
+
+
+        <!-- TELA PRINCIPAL (CARTEIRA EXATA DA IMAGEM) -->
+        <div id="screen-main" class="app-card hidden">
+            
+            <!-- NOTIFICAÇÃO FLUTUANTE DE DÉBITO/CRÉDITO -->
+            <div id="feedback-toast" class="toast hidden"></div>
+
+            <!-- MOLDURA EXTERNA (MADEIRA ESCURA) -->
+            <div class="carteira-wood-frame">
+                <!-- CARTÃO PERGAMINHO BEGE -->
+                <div class="carteira-parchment">
+                    
+                    <!-- MARCAS D'ÁGUA DE FUNDO -->
+                    <div class="watermark-text">Kassino</div>
+                    <div class="watermark-face"></div>
+
+                    <!-- DECORAÇÕES DOS CANTOS -->
+                    <span class="corner-icon top-left">🗼</span>
+                    <span class="corner-icon top-right">🥁</span>
+                    <span class="corner-icon bottom-left">🦀</span>
+                    <span class="corner-icon bottom-right">☂️</span>
+
+                    <!-- CABEÇALHO SUPERIOR DIREITO -->
+                    <div class="card-top-meta">
+                        <div>Date Begun: <span id="meta-date">01/28/2022</span></div>
+                        <div>ID: <span id="meta-id">282445</span></div>
+                    </div>
+                    <div class="card-top-symbol">♊</div>
+
+                    <!-- LINHAS GUIA PARALELAS -->
+                    <div class="guide-line line-top"></div>
+                    <div class="guide-line line-bottom"></div>
+
+                    <!-- CORPO DA CARTEIRA -->
+                    <div class="card-body">
+                        
+                        <!-- LADO ESQUERDO: FOTO, BANNER NOME E ESTRELAS -->
+                        <div class="left-panel">
+                            <div class="avatar-box">
+                                <div class="photo-corner top-l"></div>
+                                <div class="photo-corner top-r"></div>
+                                <div class="photo-corner bot-l"></div>
+                                <div class="photo-corner bot-r"></div>
+                                
+                                <div id="avatar-image-display" class="avatar-photo-content">
+                                    <span class="avatar-emoji">👤</span>
+                                    <span class="avatar-text-label">AVATAR DO<br>USUÁRIO</span>
+                                </div>
+                            </div>
+
+                            <!-- BANNER DO NOME (HEXAGONAL AZUL ESCURO) -->
+                            <div class="name-badge-banner">
+                                <span id="wallet-name">NOME DO USUÁRIO</span>
+                            </div>
+
+                            <!-- FILEIRA DE ESTRELAS -->
+                            <div class="stars-row">✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦</div>
+                        </div>
+
+                        <!-- LADO DIREITO: DADOS E SELOS DE RECOMPENSA -->
+                        <div class="right-panel">
+                            <h3 id="wallet-profile-title" class="profile-title">PERFIL DO JOGADOR</h3>
+
+                            <div class="data-row">
+                                <span class="data-label">ID Jogador:</span>
+                                <span id="wallet-id-display" class="data-val-bold">#000000</span>
+                            </div>
+
+                            <div class="data-row">
+                                <span class="data-label">Dia/Hora:</span>
+                                <span id="wallet-date-display" class="data-val">Thursday, Aug 6, 2026, 6:54 PM</span>
+                            </div>
+
+                            <div class="data-row balance-row">
+                                <span class="data-label">Saldo Total:</span>
+                                <span id="wallet-balance-display" class="data-val-balance">"200"</span>
+                            </div>
+
+                            <!-- BARRA DE SELOS VERMELHOS DA IMAGEM -->
+                            <div class="stamps-bar">
+                                <div class="stamp-circle">🎯</div>
+                                <div class="stamp-circle">🥁</div>
+                                <div class="stamp-circle">🦁</div>
+                                <div class="stamp-circle">☂️</div>
+                                <div class="stamp-circle">🦀</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- NAVEGAÇÃO DE ABAS ABAIXO DO CARTÃO -->
+            <div class="nav-tabs">
+                <button id="tab-btn-extrato" class="tab-btn active" onclick="switchTab('extrato')">📜 Extrato</button>
+                <button id="tab-btn-qrcode" class="tab-btn" onclick="switchTab('qrcode')">📱 Meu QR Code</button>
+            </div>
+
+            <!-- CONTEÚDO DAS ABAS -->
+            <div id="tab-extrato" class="tab-content">
+                <h4 class="sub-title">Histórico de Movimentações</h4>
+                <div id="transaction-list" class="transaction-list"></div>
+            </div>
+
+            <div id="tab-qrcode" class="tab-content hidden">
+                <p class="qr-info">Apresente este QR Code para ler saldos ou recompensas:</p>
+                <div id="player-qrcode-container" class="qr-box"></div>
+            </div>
+
+            <button class="btn-reset" onclick="resetWallet()">
+                🚪 Encerrar Sessão / Novo Jogador
+            </button>
+
         </div>
     </div>
 
-    <!-- ABAS DA CARTEIRA -->
-    <div class="tab-buttons">
-        <button id="btn-tab-carteira" class="active">📜 Extrato</button>
-        <button id="btn-tab-qrcode">📱 Meu QR Code</button>
-    </div>
-
-    <!-- EXTRATO DE MOVIMENTAÇÕES -->
-    <div id="tab-carteira">
-        <h4 style="margin: 15px 0 10px; color:#334155;">Histórico de Movimentações</h4>
-        <div id="transaction-log" class="transaction-log"></div>
-    </div>
-
-    <!-- QR CODE DO JOGADOR -->
-    <div id="tab-qrcode" class="hidden" style="text-align: center; padding: 20px 0;">
-        <p style="color:#64748b; font-size:0.9rem;">Apresente este QR Code para receber recursos.</p>
-        <div id="qrcode-player-display" style="margin: 15px auto;"></div>
-    </div>
-
-    <!-- BOTÃO PARA RESETAR -->
-    <button id="btn-reset-app" class="btn-reset">
-        🚪 Encerrar Sessão / Trocar de Jogador
-    </button>
-</div>
+    <!-- Força atualização do JS evitando cache -->
+    <script src="script.js?v=3"></script>
+</body>
+</html>

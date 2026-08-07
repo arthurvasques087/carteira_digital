@@ -1,75 +1,220 @@
-// Função para gerar o ID automático (# + 6 dígitos)
-function generatePlayerId() {
-    const randomDigits = Math.floor(100000 + Math.random() * 900000);
-    return '#' + randomDigits;
+// DICIONÁRIO DOS NOVO PERFIS
+const PERFIS = {
+    estrategista: {
+        nome: "O ESTRATEGISTA",
+        quote: '"Para mim, sorte é apenas matemática sem paciência."',
+        desc: "Focado em lógica, probabilidade e controle. Prefere jogos de mesa e desafios onde a tomada de decisão inteligente faz toda a diferença."
+    },
+    colecionador: {
+        nome: "O COLECIONADOR",
+        quote: '"Cada vitória é um passo a mais para completar o álbum."',
+        desc: "Movido a conquistas, missões e recompensas. Seu objetivo principal é desbloquear selos, completar barras de progresso e garantir todos os troféus."
+    },
+    desafiador: {
+        nome: "O DESAFIADOR",
+        quote: '"A emoção só vale a pena quando o risco é alto."',
+        desc: "Busca o topo das tabelas e a adrenalina das grandes jogadas. Mantém o foco no status, na competitividade e na busca por prêmios lendários."
+    },
+    social: {
+        nome: "O SOCIAL",
+        quote: '"A melhor parte de jogar é com quem você compartilha a mesa."',
+        desc: "Valoriza a experiência comunitária e a diversão sem pressão. Joga para relaxar, trocar ideias no chat e celebrar vitórias em equipe."
+    }
+};
+
+let userWallet = JSON.parse(localStorage.getItem('user_carteira_cassino')) || null;
+
+// ATUALIZA A PRÉVIA DO PERFIL NA TELA DE CADASTRO
+function updateProfilePreview() {
+    const key = document.getElementById('profile').value;
+    const p = PERFIS[key];
+    if (p) {
+        document.getElementById('profile-quote').innerText = p.quote;
+        document.getElementById('profile-desc').innerText = p.desc;
+    }
 }
 
-// Função para formatar a data/hora exata (DD/MM/AAAA 00:00 AM/PM)
-function getFormattedDateTime() {
+// GERA ID DE 6 DÍGITOS (#000000)
+function generateRandomID() {
+    const num = Math.floor(100000 + Math.random() * 900000);
+    return '#' + num;
+}
+
+// FORMATA DATA E HORA (FORMATO EXATO DA IMAGEM)
+function getFormattedDate() {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
     const now = new Date();
-    const data = now.toLocaleDateString('pt-BR'); // Ex: 06/08/2026
-    const hora = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }); // Ex: 06:54 PM
-    return `${data} ${hora}`;
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const day = now.getDate();
+    const year = now.getFullYear();
+
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${dayName}, ${monthName} ${day}, ${year}, ${hours}:${minutes} ${ampm}`;
 }
 
-// Atualização do cadastro do jogador
+// CADASTRA O JOGADOR E EMITE A CARTEIRA
 function generateWallet() {
-    const nameInput = DOM.usernameInput.value.trim();
+    const nameInput = document.getElementById('username').value.trim();
     if (!nameInput) {
-        alert('Por favor, informe seu nome.');
+        alert('Por favor, informe o seu nome para continuar.');
         return;
     }
 
-    userData.nome = nameInput;
+    const key = document.getElementById('profile').value;
+    const perfilObj = PERFIS[key];
+
+    // SALDO SORTEADO ENTRE 50, 100, 150 OU 200
+    const saldos = [50, 100, 150, 200];
+    const saldoInicial = saldos[Math.floor(Math.random() * saldos.length)];
+
+    userWallet = {
+        nome: nameInput.toUpperCase(),
+        perfil: perfilObj.nome,
+        idJogador: generateRandomID(),
+        dataCriacao: getFormattedDate(),
+        saldo: saldoInicial,
+        historico: []
+    };
+
+    localStorage.setItem('user_carteira_cassino', JSON.stringify(userWallet));
+    renderApp();
+    checkUrlParams();
+}
+
+// CONTROLE DE ABAS (EXTRATO OU QR CODE)
+function switchTab(tab) {
+    document.getElementById('tab-extrato').classList.add('hidden');
+    document.getElementById('tab-qrcode').classList.add('hidden');
+    document.getElementById('tab-btn-extrato').classList.remove('active');
+    document.getElementById('tab-btn-qrcode').classList.remove('active');
+
+    if (tab === 'extrato') {
+        document.getElementById('tab-extrato').classList.remove('hidden');
+        document.getElementById('tab-btn-extrato').classList.add('active');
+    } else {
+        document.getElementById('tab-qrcode').classList.remove('hidden');
+        document.getElementById('tab-btn-qrcode').classList.add('active');
+        renderQRCode();
+    }
+}
+
+// GERA O QR CODE DO JOGADOR
+function renderQRCode() {
+    const container = document.getElementById('player-qrcode-container');
+    container.innerHTML = '';
+    if (userWallet) {
+        new QRCode(container, {
+            text: `JOGADOR:${userWallet.idJogador}:${userWallet.nome}`,
+            width: 150,
+            height: 150
+        });
+    }
+}
+
+// PROCESSA DÉBITO OU CRÉDITO LIDO VIA QR CODE
+function processTransaction(val) {
+    if (!userWallet) return;
     
-    // Perfil selecionado
-    const selectedKey = DOM.profileSelect.value;
-    userData.perfil = PERFIS_JOGADOR[selectedKey].nome;
+    userWallet.saldo += val;
+    const isPos = val > 0;
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // 1. Gera o ID do Jogador (# + 6 números aleatórios)
-    userData.idJogador = generatePlayerId();
-
-    // 2. Registra o Dia / Hora da criação da carteira
-    userData.dataHora = getFormattedDateTime();
-
-    // 3. Sorteia o Saldo Total entre 50, 100 ou 150
-    const saldosPossiveis = [50, 100, 150];
-    userData.saldo = saldosPossiveis[Math.floor(Math.random() * saldosPossiveis.length)];
-
-    userData.historico = [];
-    saveLocalState();
-
-    // Salva no Google Sheets incluindo ID e Data/Hora
-    saveToGoogleSheets({
-        idJogador: userData.idJogador,
-        dataHora: userData.dataHora,
-        nome: userData.nome,
-        genero: userData.genero,
-        tomPele: userData.tomPele,
-        perfil: userData.perfil,
-        saldo: userData.saldo
+    userWallet.historico.unshift({
+        desc: isPos ? 'Crédito via QR Code' : 'Débito via QR Code',
+        valor: val,
+        hora: timeStr
     });
 
+    localStorage.setItem('user_carteira_cassino', JSON.stringify(userWallet));
     renderApp();
+
+    // TOAST NOTIFICAÇÃO
+    const toast = document.getElementById('feedback-toast');
+    toast.style.background = isPos ? '#16a34a' : '#dc2626';
+    toast.innerText = `${isPos ? '➕ Crédito' : '➖ Débito'} de $${Math.abs(val)} efetuado!`;
+    toast.classList.remove('hidden');
+
+    window.history.pushState({}, '', window.location.pathname);
+    setTimeout(() => { toast.classList.add('hidden'); }, 3000);
 }
 
-// Renderiza as informações na tela
+// VERIFICA SE O QR CODE SCANNER ENVIOU PARÂMETROS
+function checkUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const valParam = params.get('valor');
+    if (valParam && !isNaN(valParam) && userWallet) {
+        processTransaction(parseFloat(valParam));
+    }
+}
+
+// RENDERIZA A INTERFACE NA TELA
 function renderApp() {
-    DOM.screenStart.classList.add('hidden');
-    DOM.screenRegister.classList.add('hidden');
-    DOM.screenMain.classList.remove('hidden');
+    if (!userWallet) {
+        document.getElementById('screen-register').classList.remove('hidden');
+        document.getElementById('screen-main').classList.add('hidden');
+        return;
+    }
 
-    DOM.walletName.innerText = userData.nome;
-    DOM.walletProfile.innerText = userData.perfil;
-    DOM.walletBalance.innerText = `$ ${userData.saldo}`;
+    document.getElementById('screen-register').classList.add('hidden');
+    document.getElementById('screen-main').classList.remove('hidden');
 
-    // Preenche ID e Data/Hora no cartão
-    document.getElementById('wallet-id').innerText = userData.idJogador || generatePlayerId();
-    document.getElementById('wallet-date').innerText = userData.dataHora || getFormattedDateTime();
+    // PREENCHE DADOS NA CREDENCIAL DA IMAGEM
+    document.getElementById('wallet-name').innerText = userWallet.nome;
+    document.getElementById('wallet-profile-title').innerText = userWallet.perfil;
+    document.getElementById('wallet-id-display').innerText = userWallet.idJogador;
+    document.getElementById('wallet-date-display').innerText = userWallet.dataCriacao;
+    document.getElementById('wallet-balance-display').innerText = `"${userWallet.saldo}"`;
 
-    DOM.walletAvatarDisplay.innerText = userData.avatarIcon;
-    DOM.walletAvatarDisplay.style.backgroundColor = userData.tomPele;
+    document.getElementById('meta-id').innerText = userWallet.idJogador.replace('#', '');
 
     renderLog();
-    switchTab('carteira');
 }
+
+// RENDERIZA LISTA DO EXTRATO
+function renderLog() {
+    const list = document.getElementById('transaction-list');
+    if (!userWallet.historico || userWallet.historico.length === 0) {
+        list.innerHTML = '<div style="color:#64748b; text-align:center; padding:10px; font-size:0.8rem;">Nenhuma movimentação realizada.</div>';
+        return;
+    }
+
+    list.innerHTML = '';
+    userWallet.historico.forEach(item => {
+        const isPos = item.valor > 0;
+        const div = document.createElement('div');
+        div.className = `log-entry ${isPos ? 'pos' : 'neg'}`;
+        div.innerHTML = `
+            <div>
+                <strong>${item.desc}</strong>
+                <div style="color:#64748b; font-size:0.7rem;">${item.hora}</div>
+            </div>
+            <strong style="color:${isPos ? '#22c55e' : '#ef4444'}; font-size:0.95rem;">
+                ${isPos ? '+' : ''}${item.valor}
+            </strong>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// ENCERRAR SESSÃO / NOVO CADASTRO
+function resetWallet() {
+    if (confirm('Deseja encerrar a sessão e criar um novo jogador neste aparelho?')) {
+        localStorage.removeItem('user_carteira_cassino');
+        userWallet = null;
+        renderApp();
+    }
+}
+
+window.onload = () => {
+    updateProfilePreview();
+    renderApp();
+    checkUrlParams();
+};
