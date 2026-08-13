@@ -84,17 +84,13 @@ function generateWallet() {
     checkUrlParams();
 }
 
-// NAVEGAÇÃO DE ABAS
 function switchTab(tab) {
     document.getElementById('tab-extrato').classList.add('hidden');
     document.getElementById('tab-scanner').classList.add('hidden');
-    document.getElementById('tab-qrcode').classList.add('hidden');
 
     document.getElementById('tab-btn-extrato').classList.remove('active');
     document.getElementById('tab-btn-scanner').classList.remove('active');
-    document.getElementById('tab-btn-qrcode').classList.remove('active');
 
-    // Desliga a câmera se sair da aba do leitor
     if (tab !== 'scanner') {
         stopCameraScanner();
     }
@@ -106,14 +102,9 @@ function switchTab(tab) {
         document.getElementById('tab-scanner').classList.remove('hidden');
         document.getElementById('tab-btn-scanner').classList.add('active');
         startCameraScanner();
-    } else {
-        document.getElementById('tab-qrcode').classList.remove('hidden');
-        document.getElementById('tab-btn-qrcode').classList.add('active');
-        renderQRCode();
     }
 }
 
-// INICIA A CÂMERA DO LEITOR DE QR CODE
 function startCameraScanner() {
     const feedback = document.getElementById('scanner-feedback');
     feedback.innerText = "Iniciando câmera...";
@@ -133,22 +124,19 @@ function startCameraScanner() {
         feedback.innerText = "Aponte para um QR Code de débito ou crédito.";
     }).catch(err => {
         console.error("Erro ao abrir câmera:", err);
-        feedback.innerText = "Erro ao acessar a câmera. Autorize a câmera no navegador.";
+        feedback.innerText = "Erro ao acessar a câmera. Autorize a permissão no navegador.";
     });
 }
 
-// DESLIGA A CÂMERA
 function stopCameraScanner() {
     if (html5QrCodeScanner && html5QrCodeScanner.isScanning) {
         html5QrCodeScanner.stop().catch(err => console.error(err));
     }
 }
 
-// QUANDO O LEITOR LÊ UM QR CODE COM SUCESSO
 function onScanSuccess(decodedText) {
     let valorEncontrado = null;
 
-    // Procura por valor=50 ou valor=-50 na URL do QR Code
     if (decodedText.includes('valor=')) {
         const match = decodedText.match(/valor=([-\d]+)/);
         if (match) {
@@ -168,19 +156,7 @@ function onScanSuccess(decodedText) {
 }
 
 function onScanError(errorMessage) {
-    // Ignora erros de frame vazio enquanto busca QR Code
-}
-
-function renderQRCode() {
-    const container = document.getElementById('player-qrcode-container');
-    container.innerHTML = '';
-    if (userWallet) {
-        new QRCode(container, {
-            text: `JOGADOR:${userWallet.idJogador}:${userWallet.nome}`,
-            width: 150,
-            height: 150
-        });
-    }
+    // Ignora erros de captura vazia
 }
 
 function processTransaction(val) {
@@ -231,8 +207,6 @@ function renderApp() {
     document.getElementById('wallet-id-display').innerText = userWallet.idJogador;
     document.getElementById('wallet-date-display').innerText = userWallet.dataCriacao;
     document.getElementById('wallet-balance-display').innerText = `"${userWallet.saldo}"`;
-
-    document.getElementById('meta-id').innerText = userWallet.idJogador.replace('#', '');
 
     renderLog();
 }
