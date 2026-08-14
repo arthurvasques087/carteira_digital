@@ -164,7 +164,22 @@ function onScanError(errorMessage) {}
 
 function processTransaction(val) {
     if (!userWallet) return;
+
+    // 🛑 VALIDAÇÃO: Impede que o saldo fique menor que 0
+    if (val < 0 && (userWallet.saldo + val) < 0) {
+        const toast = document.getElementById('feedback-toast');
+        if (toast) {
+            toast.style.background = '#dc2626'; // Vermelho
+            toast.innerText = `⚠️ Saldo insuficiente! Disponível: $${userWallet.saldo}`;
+            toast.classList.remove('hidden');
+
+            window.history.pushState({}, '', window.location.pathname);
+            setTimeout(() => { toast.classList.add('hidden'); }, 3500);
+        }
+        return; // Interrompe a execução, não realiza o débito
+    }
     
+    // Processa a transação normalmente caso haja saldo suficiente
     userWallet.saldo += val;
     const isPos = val > 0;
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -179,12 +194,14 @@ function processTransaction(val) {
     renderApp();
 
     const toast = document.getElementById('feedback-toast');
-    toast.style.background = isPos ? '#16a34a' : '#dc2626';
-    toast.innerText = `${isPos ? '➕ Crédito' : '➖ Débito'} de $${Math.abs(val)} efetuado!`;
-    toast.classList.remove('hidden');
+    if (toast) {
+        toast.style.background = isPos ? '#16a34a' : '#dc2626';
+        toast.innerText = `${isPos ? '➕ Crédito' : '➖ Débito'} de $${Math.abs(val)} efetuado!`;
+        toast.classList.remove('hidden');
 
-    window.history.pushState({}, '', window.location.pathname);
-    setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+        window.history.pushState({}, '', window.location.pathname);
+        setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+    }
 }
 
 function checkUrlParams() {
