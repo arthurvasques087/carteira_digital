@@ -24,6 +24,15 @@ const PERFIS = {
 let userWallet = JSON.parse(localStorage.getItem('user_carteira_cassino')) || null;
 let html5QrCodeScanner = null;
 
+// Padrão apontando para assets/avatars/
+let selectedAvatarPath = 'assets/avatars/avatar1.png';
+
+function selectAvatar(element, imagePath) {
+    document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedAvatarPath = imagePath;
+}
+
 function updateProfilePreview() {
     const key = document.getElementById('profile').value;
     const p = PERFIS[key];
@@ -35,26 +44,19 @@ function updateProfilePreview() {
 
 function generateRandomID() {
     const num = Math.floor(100000 + Math.random() * 900000);
-    return '#' + num;
+    return num.toString();
 }
 
-function getFormattedDate() {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    const now = new Date();
-    const dayName = days[now.getDay()];
-    const monthName = months[now.getMonth()];
-    const day = now.getDate();
-    const year = now.getFullYear();
+// FUNÇÃO ATUALIZADA: Padrão DD/MM/AAAA HH:MIN
+function obterDataHoraAtual() {
+    const agora = new Date();
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = agora.getFullYear();
+    const horas = String(agora.getHours()).padStart(2, '0');
+    const minutos = String(agora.getMinutes()).padStart(2, '0');
 
-    let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-
-    return `${dayName}, ${monthName} ${day}, ${year}, ${hours}:${minutes} ${ampm}`;
+    return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
 }
 
 function generateWallet() {
@@ -72,10 +74,13 @@ function generateWallet() {
 
     userWallet = {
         nome: nameInput.toUpperCase(),
-        perfil: perfilObj.nome,
+        perfilKey: key,
+        perfilNome: perfilObj.nome,
+        perfilDesc: perfilObj.desc,
         idJogador: generateRandomID(),
-        dataCriacao: getFormattedDate(),
+        dataCriacao: obterDataHoraAtual(), // Utilizando o novo formato DD/MM/AAAA HH:MIN
         saldo: saldoInicial,
+        avatarImg: selectedAvatarPath,
         historico: []
     };
 
@@ -155,9 +160,7 @@ function onScanSuccess(decodedText) {
     }
 }
 
-function onScanError(errorMessage) {
-    // Ignora erros de captura vazia
-}
+function onScanError(errorMessage) {}
 
 function processTransaction(val) {
     if (!userWallet) return;
@@ -202,11 +205,21 @@ function renderApp() {
     document.getElementById('screen-register').classList.add('hidden');
     document.getElementById('screen-main').classList.remove('hidden');
 
+    const avatarEl = document.getElementById('wallet-avatar');
+    if (avatarEl && userWallet.avatarImg) {
+        avatarEl.src = userWallet.avatarImg;
+    }
+
     document.getElementById('wallet-name').innerText = userWallet.nome;
-    document.getElementById('wallet-profile-title').innerText = userWallet.perfil;
-    document.getElementById('wallet-id-display').innerText = userWallet.idJogador;
-    document.getElementById('wallet-date-display').innerText = userWallet.dataCriacao;
-    document.getElementById('wallet-balance-display').innerText = `"${userWallet.saldo}"`;
+    document.getElementById('wallet-id').innerText = userWallet.idJogador;
+    document.getElementById('wallet-date').innerText = userWallet.dataCriacao;
+    document.getElementById('wallet-balance').innerText = userWallet.saldo;
+
+    const perfilDescEl = document.getElementById('wallet-profile-desc');
+    if (perfilDescEl) {
+        const descText = userWallet.perfilDesc || (PERFIS[userWallet.perfilKey] ? PERFIS[userWallet.perfilKey].desc : "");
+        perfilDescEl.innerText = descText;
+    }
 
     renderLog();
 }
@@ -250,3 +263,40 @@ window.onload = () => {
     renderApp();
     checkUrlParams();
 };
+
+function downloadCarteira(event) {
+    if (event) event.preventDefault();
+
+    const carteiraElement = document.querySelector('.carteira-card');
+    const linkBtn = document.querySelector('.download-link-carteira');
+
+    if (!carteiraElement) {
+        alert('Carteira não encontrada para download.');
+        return;
+    }
+
+    const textoOriginal = linkBtn ? linkBtn.innerText : '';
+    if (linkBtn) linkBtn.innerText = 'gerando imagem...';
+
+    // Captura o elemento da carteira e transforma em imagem PNG
+    html2canvas(carteiraElement, {
+        scale: 2, // Garante alta resolução na imagem gerada
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+    }).then(canvas => {
+        const image = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        const nomeArquivo = userWallet && userWallet.nome ? userWallet.nome.toLowerCase().replace(/\s+/g, '_') : 'jogador';
+        
+        downloadLink.href = image;
+        downloadLink.download = `carteira_${nomeArquivo}.png`;
+        downloadLink.click();
+
+        if (linkBtn) linkBtn.innerText = textoOriginal;
+    }).catch(err => {
+        console.error('Erro ao gerar imagem:', err);
+        if (linkBtn) linkBtn.innerText = textoOriginal;
+        alert('Ocorreu um erro ao baixar a imagem. Tente novamente.');
+    });
+}

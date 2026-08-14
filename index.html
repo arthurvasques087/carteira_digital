@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carteira Digital - Pass de Jogador</title>
-    <!-- CSS com parâmetro anti-cache v=7 -->
-    <link rel="stylesheet" href="style.css?v=7">
+    
+    <!-- Link para o style.css com parâmetro anti-cache -->
+    <link rel="stylesheet" href="style.css?v=10">
     
     <!-- Biblioteca: Leitor de QR Code via Câmera -->
     <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <!-- Biblioteca: Download da Carteira em Imagem (html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -18,24 +22,39 @@
         <div id="screen-register" class="app-card">
             <h2 class="form-title">Cadastro do Jogador</h2>
             
+            <!-- CAMPO: NOME DO JOGADOR -->
             <div class="form-group">
                 <label for="username">Nome do Jogador:</label>
                 <input type="text" id="username" placeholder="Digite seu nome ou apelido" autocomplete="off">
             </div>
 
+            <!-- CAMPO: SELEÇÃO VISUAL DOS 6 AVATARES -->
+            <div class="form-group">
+                <label>Escolha o seu Avatar:</label>
+                <div class="avatar-grid">
+                    <img src="assets/avatars/avatar1.png" class="avatar-option selected" onclick="selectAvatar(this, 'assets/avatars/avatar1.png')" alt="Avatar 1">
+                    <img src="assets/avatars/avatar2.png" class="avatar-option" onclick="selectAvatar(this, 'assets/avatars/avatar2.png')" alt="Avatar 2">
+                    <img src="assets/avatars/avatar3.png" class="avatar-option" onclick="selectAvatar(this, 'assets/avatars/avatar3.png')" alt="Avatar 3">
+                    <img src="assets/avatars/avatar4.png" class="avatar-option" onclick="selectAvatar(this, 'assets/avatars/avatar4.png')" alt="Avatar 4">
+                    <img src="assets/avatars/avatar5.png" class="avatar-option" onclick="selectAvatar(this, 'assets/avatars/avatar5.png')" alt="Avatar 5">
+                    <img src="assets/avatars/avatar6.png" class="avatar-option" onclick="selectAvatar(this, 'assets/avatars/avatar6.png')" alt="Avatar 6">
+                </div>
+            </div>
+
+            <!-- CAMPO: PERFIL DE JOGADOR -->
             <div class="form-group">
                 <label for="profile">Perfil de Jogador:</label>
                 <select id="profile" onchange="updateProfilePreview()">
                     <option value="estrategista">1. O Estrategista</option>
                     <option value="colecionador">2. O Colecionador</option>
-                    <option value="desafiador">3. O Desafiador</option>
+                    <option value="desafiador" selected>3. O Desafiador</option>
                     <option value="social">4. O Social</option>
                 </select>
 
                 <div id="profile-card-preview" class="profile-preview">
-                    <p id="profile-quote" class="quote">"Para mim, sorte é apenas matemática sem paciência."</p>
+                    <p id="profile-quote" class="quote">"A emoção só vale a pena quando o risco é alto."</p>
                     <p id="profile-desc" class="desc">
-                        Focado em lógica, probabilidade e controle. Prefere jogos de mesa e desafios onde a tomada de decisão inteligente faz toda a diferença.
+                        Busca o topo das tabelas e a adrenalina das grandes jogadas. Mantém o foco no status, na competitividade e na busca por prêmios lendários.
                     </p>
                 </div>
             </div>
@@ -50,135 +69,41 @@
             <!-- NOTIFICAÇÃO FLUTUANTE (TOAST) -->
             <div id="feedback-toast" class="toast hidden"></div>
 
-            <!-- MOLDURA EXTERNA (MADEIRA ESCURA) -->
-            <div class="carteira-wood-frame">
-                <!-- CARTÃO PERGAMINHO BEGE -->
-                <div class="carteira-parchment">
-                    
-                    <!-- MARCA D'ÁGUA TEXTO CURSIVO "Kassino" -->
-                    <div class="watermark-kassino-top">Kassino'</div>
-                    <div class="watermark-kassino-bottom">Kassino</div>
+            <!-- CARTÃO DA CARTEIRA COM A IMAGEM ASSETS/FUNDO.PNG -->
+            <div class="carteira-card">
+                
+                <!-- 1. Foto do Avatar Selecionado -->
+                <img id="wallet-avatar" class="avatar-overlay" src="assets/avatars/avatar1.png" alt="Avatar do Jogador">
 
-                    <!-- MARCA D'ÁGUA PERSONAGEM -->
-                    <div class="watermark-character"></div>
+                <!-- 2. Nome do Usuário no Banner Vermelho -->
+                <div id="wallet-name" class="nome-overlay">NOME USUÁRIO</div>
 
-                    <!-- DECORAÇÕES DOS CANTOS E SÍMBOLOS -->
-                    <span class="corner-icon top-left">🗼</span>
-                    <span class="corner-icon bottom-left">🦀</span>
-                    <span class="corner-icon bottom-right">☂️</span>
+                <!-- 3. ID do Jogador -->
+                <div id="wallet-id" class="id-overlay">000000</div>
 
-                    <!-- LINHAS GUIA PARALELAS -->
-                    <div class="guide-line line-top"></div>
-                    <div class="guide-line line-bottom"></div>
+                <!-- 4. Data / Hora -->
+                <div id="wallet-date" class="data-overlay">12/08/2026</div>
 
-                    <!-- CORPO DA CARTEIRA -->
-                    <div class="card-body">
-                        
-                        <!-- LADO ESQUERDO: FOTO, BANNER NOME E ESTRELAS -->
-                        <div class="left-panel">
-                            <div class="avatar-box">
-                                <div class="photo-corner top-l"></div>
-                                <div class="photo-corner top-r"></div>
-                                <div class="photo-corner bot-l"></div>
-                                <div class="photo-corner bot-r"></div>
-                                
-                                <div id="avatar-image-display" class="avatar-photo-content">
-                                    <span class="avatar-emoji">👤</span>
-                                    <span class="avatar-text-label">AVATAR DO<br>USUÁRIO</span>
-                                </div>
-                            </div>
+                <!-- 5. Saldo Dinâmico -->
+                <div id="wallet-balance" class="saldo-overlay">100</div>
 
-                            <!-- BANNER NOME (AZUL ESCURO) -->
-                            <div class="name-badge-banner">
-                                <span id="wallet-name">NOME DO USUÁRIO</span>
-                            </div>
-
-                            <!-- FILEIRA DE ESTRELAS -->
-                            <div class="stars-row">✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦</div>
-                        </div>
-
-                        <!-- LADO DIREITO: DADOS E ÍCONES SILHUETA -->
-                        <div class="right-panel">
-                            <h3 id="wallet-profile-title" class="profile-title">PERFIL DO JOGADOR</h3>
-
-                            <div class="data-row">
-                                <span class="data-label">ID Jogador:</span>
-                                <span id="wallet-id-display" class="data-val-bold">#000000</span>
-                            </div>
-
-                            <div class="data-row">
-                                <span class="data-label">Dia/Hora:</span>
-                                <span id="wallet-date-display" class="data-val">Friday, Aug 7, 2026, 8:09 AM</span>
-                            </div>
-
-                            <div class="data-row balance-row">
-                                <span class="data-label">Saldo Total:</span>
-                                <span id="wallet-balance-display" class="data-val-balance">"200"</span>
-                            </div>
-
-                            <!-- BARRA DE ÍCONES SILHUETA -->
-                            <div class="stamps-bar">
-                                <!-- Ícone 1: Roda / Mira Crosshair -->
-                                <svg viewBox="0 0 100 100" class="stamp-svg-icon">
-                                    <circle cx="50" cy="50" r="42" fill="none" stroke="#a81b1b" stroke-width="10"/>
-                                    <path d="M 50 8 L 50 92 M 8 50 L 92 50" stroke="#a81b1b" stroke-width="8"/>
-                                    <circle cx="50" cy="50" r="24" fill="#f4ebd0" stroke="#a81b1b" stroke-width="6"/>
-                                    <path d="M 50 38 L 50 62 M 38 50 L 62 50" stroke="#a81b1b" stroke-width="6" stroke-linecap="round"/>
-                                </svg>
-
-                                <!-- Ícone 2: Tambor Geométrico -->
-                                <svg viewBox="0 0 100 100" class="stamp-svg-icon">
-                                    <rect x="15" y="15" width="70" height="70" rx="8" fill="#a81b1b"/>
-                                    <path d="M15 15 L50 40 L85 15 M15 85 L50 60 L85 85 M15 50 L50 25 L85 50 M15 50 L50 75 L85 50" stroke="#f4ebd0" stroke-width="4.5" fill="none"/>
-                                    <line x1="15" y1="15" x2="85" y2="15" stroke="#f4ebd0" stroke-width="7"/>
-                                    <line x1="15" y1="85" x2="85" y2="85" stroke="#f4ebd0" stroke-width="7"/>
-                                </svg>
-
-                                <!-- Ícone 3: Cabeça de Ovelha de Lã -->
-                                <svg viewBox="0 0 100 100" class="stamp-svg-icon">
-                                    <path d="M30 22 C18 12 8 28 14 42 C4 52 12 68 24 74 C28 84 44 90 50 84 C56 90 72 84 76 74 C88 68 96 52 86 42 C92 28 82 12 70 22 C60 12 40 12 30 22 Z" fill="#a81b1b"/>
-                                    <ellipse cx="50" cy="52" rx="16" ry="22" fill="#f4ebd0"/>
-                                    <ellipse cx="34" cy="40" rx="4" ry="7" fill="#a81b1b"/>
-                                    <ellipse cx="66" cy="40" rx="4" ry="7" fill="#a81b1b"/>
-                                    <circle cx="43" cy="50" r="2.5" fill="#a81b1b"/>
-                                    <circle cx="57" cy="50" r="2.5" fill="#a81b1b"/>
-                                    <path d="M 45 62 Q 50 66 55 62" stroke="#a81b1b" stroke-width="3" fill="none"/>
-                                </svg>
-
-                                <!-- Ícone 4: Sombrinha / Guarda-chuva Inclinado -->
-                                <svg viewBox="0 0 100 100" class="stamp-svg-icon">
-                                    <g transform="rotate(-25 50 50)">
-                                        <path d="M 12 52 Q 50 18 88 52 Q 68 47 50 52 Q 32 47 12 52 Z" fill="#a81b1b"/>
-                                        <path d="M 50 52 L 50 82 Q 50 92 40 92" stroke="#a81b1b" stroke-width="7" fill="none" stroke-linecap="round"/>
-                                        <line x1="50" y1="20" x2="50" y2="10" stroke="#a81b1b" stroke-width="5" stroke-linecap="round"/>
-                                    </g>
-                                </svg>
-
-                                <!-- Ícone 5: Caranguejo com Cartola -->
-                                <svg viewBox="0 0 100 100" class="stamp-svg-icon">
-                                    <rect x="41" y="8" width="18" height="16" fill="#a81b1b"/>
-                                    <line x1="32" y1="24" x2="68" y2="24" stroke="#a81b1b" stroke-width="4.5" stroke-linecap="round"/>
-                                    <ellipse cx="50" cy="55" rx="26" ry="18" fill="#a81b1b"/>
-                                    <path d="M 28 45 Q 10 28 14 16 Q 28 20 25 36" fill="#a81b1b"/>
-                                    <path d="M 72 45 Q 90 28 86 16 Q 72 20 75 36" fill="#a81b1b"/>
-                                    <path d="M 26 62 Q 8 68 16 80 M 30 70 Q 14 80 22 90 M 74 62 Q 86 80 78 90" stroke="#a81b1b" stroke-width="5" fill="none" stroke-linecap="round"/>
-                                    <circle cx="42" cy="42" r="2.5" fill="#f4ebd0"/>
-                                    <circle cx="58" cy="42" r="2.5" fill="#f4ebd0"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                    </div>
+                <!-- 6. Descrição do Perfil do Jogador -->
+                <div id="wallet-profile-desc" class="perfil-overlay">
+                    Busca o topo das tabelas e a adrenalina das grandes jogadas.
                 </div>
+
             </div>
 
+            <!-- Link de Download da Carteira (Logo abaixo do cartão) -->
+            <a href="#" class="download-link-carteira" onclick="downloadCarteira(event)">click aqui para baixar sua carteira</a>
+
             <!-- MENU DE NAVEGAÇÃO -->
-            <div class="nav-tabs">
+            <div class="nav-tabs" style="margin-top: 16px;">
                 <button id="tab-btn-extrato" class="tab-btn active" onclick="switchTab('extrato')">📜 Extrato</button>
                 <button id="tab-btn-scanner" class="tab-btn highlight-scanner" onclick="switchTab('scanner')">📷 Escanear QR</button>
             </div>
 
-            <!-- ABA 1: EXTRATO -->
+            <!-- ABA 1: EXTRATO DE MOVIMENTAÇÕES -->
             <div id="tab-extrato" class="tab-content">
                 <h4 class="sub-title">Histórico de Movimentações</h4>
                 <div id="transaction-list" class="transaction-list"></div>
@@ -193,6 +118,7 @@
                 <div id="scanner-feedback" class="scanner-feedback-msg">Aguardando câmera...</div>
             </div>
 
+            <!-- BOTÃO PARA ENCERRAR SESSÃO -->
             <button class="btn-reset" onclick="resetWallet()">
                 🚪 Encerrar Sessão / Novo Jogador
             </button>
@@ -200,7 +126,7 @@
         </div>
     </div>
 
-    <!-- Script JS com parâmetro anti-cache v=7 -->
-    <script src="script.js?v=7"></script>
+    <!-- Script JS -->
+    <script src="script.js?v=10"></script>
 </body>
 </html>
